@@ -1,0 +1,11 @@
+Lafa
+
+This distribution includes model weights derived from the Qwen model family.
+Qwen2.5 and Qwen3 model repositories identify their license as Apache-2.0.
+Upstream models:
+https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct
+https://huggingface.co/Qwen/Qwen2.5-7B-Instruct
+https://huggingface.co/Qwen/Qwen3-8B-Base
+
+Lafa adds time conditioning, flow objectives and decoding, and learned time schedules.
+Transformers and PyTorch are external dependencies and retain their own licenses.

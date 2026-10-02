@@ -1,0 +1,14 @@
+# Core versions used for the 0.5B CPU/GPU regression checks on 2026-10-02.
+# Constraints do not install packages. Use pip install -r requirements.txt -c constraints-tested.txt.
+# This is not a full dependency lock.
+torch==2.10.0
+transformers==5.3.0
+datasets==4.7.0
+accelerate==1.13.0
+lm-eval==0.4.11
+huggingface-hub==1.7.1
+tokenizers==0.22.2
+# Only applies when PEFT is installed; older optional PEFT can break Trainer imports.
+peft==0.21.2
+
+deepspeed==0.18.0

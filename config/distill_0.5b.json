@@ -1,0 +1,20 @@
+{
+  "distill_teacher_path": "lafa-hf/lafa-0.5B",
+  "dataset_name": "allenai/Dolci-Instruct-SFT",
+  "block_size": 512,
+  "output_dir": "output/lafa-0.5b-psd",
+  "per_device_train_batch_size": 4,
+  "gradient_accumulation_steps": 4,
+  "num_train_epochs": 5,
+  "learning_rate": 1e-05,
+  "lr_scheduler_type": "constant_with_warmup",
+  "warmup_steps": 500,
+  "bf16": true,
+  "gradient_checkpointing": true,
+  "logging_steps": 10,
+  "save_steps": 500,
+  "save_total_limit": 2,
+  "report_to": "none",
+  "remove_unused_columns": false,
+  "seed": 42
+}
