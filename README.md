@@ -1,8 +1,30 @@
-# Lafa
+# Large Flow Language Models
 
-Lafa is a block autoregressive flow language model with teacher training,
-learned time schedules, conditional PSD distillation, and AR, flow, confidence,
-and self-speculative decoding.
+**Arnav Chavan**<sup>1,2,*</sup>, **Chanhyuk Lee**<sup>3,*</sup>,
+**Udbhav Bamba**<sup>1,*</sup>, **Jaehoon Yoo**<sup>3</sup>,
+**Seunghoon Hong**<sup>3</sup>, **Aditi Raghunathan**<sup>4,†</sup>,
+**Jinwoo Kim**<sup>3,†</sup>
+
+<sup>1</sup> Amazon · <sup>2</sup> UC Berkeley · <sup>3</sup> KAIST ·
+<sup>4</sup> Carnegie Mellon University
+
+<sup>*</sup> Equal contribution · <sup>†</sup> Equal advising
+
+[Models](https://huggingface.co/lafa-hf/models) ·
+[Inference](#hugging-face-models) · [Training](#additional-teacher-training) ·
+[Distillation](#distill-a-flow-map-student) · [Evaluation](#evaluate-an-hf-model)
+
+Official implementation of **Large Flow Language Models**.
+**LAFA** is a block-autoregressive flow language model that preserves causal
+order across blocks while learning asynchronous progression within each block.
+It converts pretrained autoregressive models into flow language models at
+0.5B, 7B, and 8B scales, using fewer than 10B training tokens.
+
+By jointly learning a block denoiser and a next-token predictor, LAFA supports
+next-token, parallel flow, self-speculative, and confidence decoding in one
+model. Progressive self-distillation learns flow maps for few-step generation.
+The paper evaluates instruction following, reasoning, and coding on IFEval,
+BBH, MMLU-Pro, GPQA, GSM8K, and HumanEval.
 
 ## Hugging Face models
 
