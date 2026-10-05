@@ -1,18 +1,18 @@
 # Large Flow Language Models
 
-**Arnav Chavan**<sup>1,2,*</sup>, **Chanhyuk Lee**<sup>3,*</sup>,
-**Udbhav Bamba**<sup>1,*</sup>, **Jaehoon Yoo**<sup>3</sup>,
+**Arnav Chavan**<sup>1,2,&#42;</sup>, **Chanhyuk Lee**<sup>3,&#42;</sup>,
+**Udbhav Bamba**<sup>1,&#42;</sup>, **Jaehoon Yoo**<sup>3</sup>,<br>
 **Seunghoon Hong**<sup>3</sup>, **Aditi Raghunathan**<sup>4,†</sup>,
 **Jinwoo Kim**<sup>3,†</sup>
 
 <sup>1</sup> Amazon · <sup>2</sup> UC Berkeley · <sup>3</sup> KAIST ·
 <sup>4</sup> Carnegie Mellon University
 
-<sup>*</sup> Equal contribution · <sup>†</sup> Equal advising
+<sup>&#42;</sup> Equal contribution · <sup>†</sup> Equal advising
 
-[Models](https://huggingface.co/lafa-hf/models) ·
-[Inference](#hugging-face-models) · [Training](#additional-teacher-training) ·
-[Distillation](#distill-a-flow-map-student) · [Evaluation](#evaluate-an-hf-model)
+![arXiv](https://img.shields.io/badge/arXiv-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white)
+[![Hugging Face](https://img.shields.io/badge/Hugging_Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/lafa-hf/models)
+![Blog](https://img.shields.io/badge/Blog-2563EB?style=for-the-badge)
 
 Official implementation of **Large Flow Language Models**.
 **LAFA** is a block-autoregressive flow language model that preserves causal
@@ -25,6 +25,11 @@ next-token, parallel flow, self-speculative, and confidence decoding in one
 model. Progressive self-distillation learns flow maps for few-step generation.
 The paper evaluates instruction following, reasoning, and coding on IFEval,
 BBH, MMLU-Pro, GPQA, GSM8K, and HumanEval.
+
+## Getting started
+
+[Inference](#hugging-face-models) · [Training](#additional-teacher-training) ·
+[Distillation](#distill-a-flow-map-student) · [Evaluation](#evaluate-an-hf-model)
 
 ## Hugging Face models
 
