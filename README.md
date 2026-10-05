@@ -10,17 +10,17 @@
 
 <sup>&#42;</sup> Equal contribution · <sup>†</sup> Equal advising
 
-![arXiv](https://img.shields.io/badge/arXiv-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white)
-[![Hugging Face](https://img.shields.io/badge/Hugging_Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/lafa-hf/models)
-![Blog](https://img.shields.io/badge/Blog-2563EB?style=for-the-badge)
+![arXiv](https://img.shields.io/badge/arXiv-B31B1B?logo=arxiv&logoColor=white)
+[![Hugging Face](https://img.shields.io/badge/Hugging_Face-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/lafa-hf/models)
+![Blog](https://img.shields.io/badge/Blog-2563EB)
 
 Official implementation of **Large Flow Language Models**.
-**LAFA** is a block-autoregressive flow language model that preserves causal
+**Lafa** is a block-autoregressive flow language model that preserves causal
 order across blocks while learning asynchronous progression within each block.
 It converts pretrained autoregressive models into flow language models at
 0.5B, 7B, and 8B scales, using fewer than 10B training tokens.
 
-By jointly learning a block denoiser and a next-token predictor, LAFA supports
+By jointly learning a block denoiser and a next-token predictor, Lafa supports
 next-token, parallel flow, self-speculative, and confidence decoding in one
 model. Progressive self-distillation learns flow maps for few-step generation.
 The paper evaluates instruction following, reasoning, and coding on IFEval,
@@ -113,7 +113,7 @@ pip install -r requirements.txt -c constraints-tested.txt
 torchrun --standalone --nproc_per_node=8 train_distill.py config/distill_0.5b.json
 ```
 
-`distill_teacher_path` accepts an HF model ID or a local exported LAFA directory.
+`distill_teacher_path` accepts an HF model ID or a local exported Lafa directory.
 `revision` and `subfolder` select the teacher snapshot. The default teacher is
 `lafa-hf/lafa-0.5B`, whose root weights already contain EMA. Student and teacher
 start from those same weights; the student's target-time embedding is initialized
