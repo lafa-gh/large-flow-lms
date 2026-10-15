@@ -1,33 +1,81 @@
+<div align="center">
+
 # Large Flow Language Models
 
-**Arnav Chavan**<sup>1,2,&#42;</sup>, **Chanhyuk Lee**<sup>3,&#42;</sup>,
-**Udbhav Bamba**<sup>1,&#42;</sup>, **Jaehoon Yoo**<sup>3</sup>,<br>
-**Seunghoon Hong**<sup>3</sup>, **Aditi Raghunathan**<sup>4,†</sup>,
+### One model. Three ways to decode.
+
+`next-token` · `parallel flow` · `self-speculative`
+
+[![Paper](https://img.shields.io/badge/Paper-Citation-B31B1B?logo=arxiv&logoColor=white)](#citation)
+[![Models](https://img.shields.io/badge/Hugging_Face-Models-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/lafa-hf/models)
+[![Inference](https://img.shields.io/badge/Docs-Inference-2563EB)](docs/inference.md)
+[![License](https://img.shields.io/badge/License-Apache_2.0-16A34A)](LICENSE)
+
+**Arnav Chavan**<sup>1,2,&#42;</sup> ·
+**Chanhyuk Lee**<sup>3,&#42;</sup> ·
+**Udbhav Bamba**<sup>1,&#42;</sup> ·
+**Jaehoon Yoo**<sup>3</sup> ·
+**Seunghoon Hong**<sup>3</sup> ·
+**Aditi Raghunathan**<sup>4,†</sup> ·
 **Jinwoo Kim**<sup>3,†</sup>
 
+<sub>
 <sup>1</sup> Amazon · <sup>2</sup> UC Berkeley · <sup>3</sup> KAIST ·
-<sup>4</sup> Carnegie Mellon University
-
+<sup>4</sup> Carnegie Mellon University<br>
 <sup>&#42;</sup> Equal contribution · <sup>†</sup> Equal advising
+</sub>
 
-![arXiv](https://img.shields.io/badge/arXiv-B31B1B?logo=arxiv&logoColor=white)
-[![Hugging Face](https://img.shields.io/badge/Hugging_Face-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/lafa-hf/models)
-![Blog](https://img.shields.io/badge/Blog-2563EB)
+</div>
 
-Official implementation of **Large Flow Language Models**.
-**Lafa** converts pretrained autoregressive models into block flow language models
-at 0.5B, 7B, and 8B scales. A single model supports next-token prediction,
-parallel flow, and self-speculative decoding; distillation enables few-step flow maps.
+---
 
-![Lafa overview: next-token, flow, and self-speculative decoding](docs/assets/overview.png)
+**Lafa** converts pretrained autoregressive models into block flow language
+models. The same weights support standard next-token prediction, parallel
+block generation, and self-speculative decoding.
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <strong>2.54×</strong><br>
+      AR throughput at matched or better quality
+    </td>
+    <td align="center" width="33%">
+      <strong>3 modes</strong><br>
+      NTP · flow · self-spec
+    </td>
+    <td align="center" width="33%">
+      <strong>0.5B–8B</strong><br>
+      released checkpoints
+    </td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/assets/overview.png"
+       alt="Lafa next-token, flow, and self-speculative decoding overview"
+       width="100%">
+</p>
+
+## Results
+
+<p align="center">
+  <img src="docs/assets/main_results.png"
+       alt="Lafa quality and throughput frontier"
+       width="560">
+</p>
+
+<p align="center">
+  <strong>Quality + speed:</strong>
+  Lafa 7B reaches 2.54× AR throughput at matched or better quality.
+</p>
 
 ## Models
 
-| Backbone | Model repository |
-| --- | --- |
-| Qwen2.5 0.5B Instruct | [lafa-hf/lafa-0.5B](https://huggingface.co/lafa-hf/lafa-0.5B) |
-| Qwen2.5 7B Instruct | [lafa-hf/lafa-7B](https://huggingface.co/lafa-hf/lafa-7B) |
-| Qwen3 8B Base | [lafa-hf/lafa-8B](https://huggingface.co/lafa-hf/lafa-8B) |
+| Backbone | Size | Block | Model |
+|---|---:|---:|---|
+| Qwen2.5 Instruct | 0.5B | 4 | [🤗 `lafa-hf/lafa-0.5B`](https://huggingface.co/lafa-hf/lafa-0.5B) |
+| Qwen2.5 Instruct | 7B | 4 | [🤗 `lafa-hf/lafa-7B`](https://huggingface.co/lafa-hf/lafa-7B) |
+| Qwen3 Base | 8B | 4 | [🤗 `lafa-hf/lafa-8B`](https://huggingface.co/lafa-hf/lafa-8B) |
 
 ## Quick start
 
@@ -37,9 +85,6 @@ cd large-flow-lms
 pip install -r requirements-inference.txt
 ```
 
-The example uses a CUDA GPU and greedy generation. Model code is included with
-the Hugging Face checkpoint.
-
 ```python
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -47,29 +92,53 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 repo = "lafa-hf/lafa-0.5B"
 tokenizer = AutoTokenizer.from_pretrained(repo, trust_remote_code=True)
 model = AutoModelForCausalLM.from_pretrained(
-    repo, trust_remote_code=True, dtype=torch.bfloat16
+    repo,
+    trust_remote_code=True,
+    dtype=torch.bfloat16,
 ).to("cuda").eval()
+
 text = tokenizer.apply_chat_template(
     [{"role": "user", "content": "What is 17 + 25?"}],
-    tokenize=False, add_generation_prompt=True,
+    tokenize=False,
+    add_generation_prompt=True,
 )
-inputs = tokenizer(text, add_special_tokens=False, return_tensors="pt").to("cuda")
+inputs = tokenizer(
+    text,
+    add_special_tokens=False,
+    return_tensors="pt",
+).to("cuda")
+
 output = model.generate(
-    **inputs, gen_mode="flow", num_steps=4, cfg_scale=1.0,
-    noise_scale_override=0.1, max_new_tokens=128,
+    **inputs,
+    gen_mode="flow",
+    num_steps=4,
+    noise_scale_override=0.1,
+    cfg_scale=1.0,
+    max_new_tokens=128,
 )
-print(tokenizer.decode(output[0, inputs.input_ids.shape[1]:], skip_special_tokens=True))
+
+print(tokenizer.decode(
+    output[0, inputs.input_ids.shape[1]:],
+    skip_special_tokens=True,
+))
 ```
 
-Use `gen_mode="speculative"` for self-speculative decoding or `gen_mode="ar"`
-for next-token prediction. See the [inference guide](docs/inference.md) for
-other modes, batching, and checkpoint options.
+Change one argument to switch decoding:
 
-## Training and evaluation
+| Mode | Argument |
+|---|---|
+| Parallel flow | `gen_mode="flow"` |
+| Next-token prediction | `gen_mode="ar"` |
+| Self-speculative | `gen_mode="speculative"` |
 
-- [Training](docs/training.md): convert an AR backbone or continue training a Lafa checkpoint.
-- [Distillation](docs/distillation.md): train a flow-map student for few-step generation.
-- [Evaluation](docs/evaluation.md): run benchmarks and checkpoint checks.
+## Guides
+
+| | |
+|---|---|
+| [**Inference**](docs/inference.md) | Modes, batching, and checkpoint options |
+| [**Training**](docs/training.md) | Convert or continue training a Lafa model |
+| [**Distillation**](docs/distillation.md) | Train a few-step flow map |
+| [**Evaluation**](docs/evaluation.md) | Run benchmarks and checkpoint checks |
 
 ## Citation
 
