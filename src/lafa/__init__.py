@@ -1,1 +1,1 @@
-"""Lafa runtime and Hugging Face model integration."""
+"""Lafa model runtime, training utilities, and Hugging Face integration."""

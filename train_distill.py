@@ -8,9 +8,9 @@ import torch
 from transformers import AutoTokenizer, set_seed
 
 from src.dataset import load_and_tokenize_dataset
-from src.flow.callbacks import EMACallback, TimeWarpCallback
-from src.flow.data_collator import FlowDataCollator
-from src.flow.distillation import distillation_loss
+from src.lafa.callbacks import EMACallback, TimeWarpCallback
+from src.lafa.data_collator import FlowDataCollator
+from src.lafa.distillation import distillation_loss
 from src.lafa.configuration_lafa import LafaConfig
 from src.lafa.modeling_lafa import LafaForCausalLM
 from src.utils.config import BaseConfig, parse_config_and_training_args

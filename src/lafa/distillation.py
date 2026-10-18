@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from torch import Tensor
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
-from src.lafa.attention import create_conditional_packed_attention_mask
+from .attention import create_conditional_packed_attention_mask
 
 
 @dataclass

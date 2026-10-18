@@ -28,10 +28,10 @@ from transformers import (
 
 accelerator = setup_accelerator()
 
-from src.flow.model import FlowModelWrapper
-from src.flow.init_checkpoint import load_init_state_dict
-from src.flow.data_collator import FlowDataCollator
-from src.flow.callbacks import (
+from src.lafa.flow_model import FlowModelWrapper
+from src.lafa.init_checkpoint import load_init_state_dict
+from src.lafa.data_collator import FlowDataCollator
+from src.lafa.callbacks import (
     EMACallback,
     EmbedNormProjectCallback,
     EpochCheckpointCallback,

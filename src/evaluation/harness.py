@@ -36,7 +36,7 @@ from lm_eval.__main__ import cli_evaluate
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 
-from src.flow.model import FlowModelWrapper
+from src.lafa.flow_model import FlowModelWrapper
 from src.utils.checkpoints import latest_checkpoint
 from src.utils.hub import resolve_checkpoint
 

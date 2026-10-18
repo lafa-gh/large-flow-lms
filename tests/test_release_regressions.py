@@ -2,8 +2,8 @@
 import pytest
 import torch
 from transformers import Qwen2Config, Qwen2ForCausalLM
-from src.flow.model import FlowModelWrapper
-from src.flow.init_checkpoint import load_init_state_dict, normalize_init_state_dict
+from src.lafa.flow_model import FlowModelWrapper
+from src.lafa.init_checkpoint import load_init_state_dict, normalize_init_state_dict
 from src.evaluation.harness import AR2FlowEvalHarness, _generation_settings
 
 

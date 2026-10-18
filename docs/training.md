@@ -4,6 +4,12 @@
 
 Run commands from the repository root.
 
+The model runtime and flow training utilities live together in `src/lafa/`.
+Training uses `flow_model.py`, `data_collator.py`, `callbacks.py`, and
+`init_checkpoint.py`; student distillation uses `distillation.py`.
+`modeling_lafa.py` provides the Hugging Face interface and exports the runtime
+files needed to load checkpoints independently of this repository.
+
 ## Additional teacher training
 
 Install the training dependencies, then select a fine-tuning preset:

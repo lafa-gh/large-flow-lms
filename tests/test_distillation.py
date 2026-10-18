@@ -4,7 +4,7 @@ import pytest
 import torch
 from transformers import AutoModelForCausalLM, Qwen2Config
 
-from src.flow.data_collator import FlowDataCollator
+from src.lafa.data_collator import FlowDataCollator
 from src.lafa.configuration_lafa import LafaConfig
 from src.lafa.modeling_lafa import LafaForCausalLM
 from train_distill import DistillConfig, build_student
