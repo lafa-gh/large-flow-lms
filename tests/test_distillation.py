@@ -68,7 +68,9 @@ def test_psd_frozen_teacher_and_student_roundtrip(tmp_path, monkeypatch):
     torch.testing.assert_close(student(ids, attention_mask=mask, labels=labels).loss, loss)
     student.eval()
     student.save_pretrained(tmp_path / "student")
-    restored = AutoModelForCausalLM.from_pretrained(tmp_path / "student", trust_remote_code=True)
+    restored = AutoModelForCausalLM.from_pretrained(
+        tmp_path / "student", trust_remote_code=True, dtype=student.dtype
+    )
     assert not hasattr(restored, "_teacher")
     prompt = torch.tensor([[2, 3, 4]])
     for mode, steps in [("ar", 1), ("flow", 1), ("flow", 4), ("speculative", 1)]:
@@ -78,8 +80,6 @@ def test_psd_frozen_teacher_and_student_roundtrip(tmp_path, monkeypatch):
         assert actual.shape[1] == 8
     with pytest.raises(ValueError, match="train_distill"):
         restored(ids, labels=labels)
-    with pytest.raises(ValueError, match="Student"):
-        restored.generate(prompt, gen_mode="confidence")
     resumed, _ = build_student(recipe, str(tmp_path / "student"))
     for name, value in student.state_dict().items():
         torch.testing.assert_close(resumed.state_dict()[name], value)

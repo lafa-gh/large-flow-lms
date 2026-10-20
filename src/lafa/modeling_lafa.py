@@ -160,10 +160,8 @@ class LafaForCausalLM(FlowModelWrapper):
         ids = input_ids if input_ids is not None else inputs
         if ids is None or ids.ndim != 2 or ids.shape[1] == 0:
             raise ValueError('Expected nonempty input_ids with shape [batch, sequence]')
-        if gen_mode not in ('ar', 'flow', 'confidence', 'greedy', 'speculative'):
+        if gen_mode not in ('ar', 'flow', 'speculative'):
             raise ValueError(f'Unsupported gen_mode={gen_mode!r}')
-        if self._two_time and gen_mode not in ('ar', 'flow', 'speculative'):
-            raise ValueError('Student generation supports ar, flow, and speculative')
         gc = generation_config or self.generation_config
         limit = int(max_new_tokens if max_new_tokens is not None else gc.max_new_tokens or 128)
         if limit < 0:
@@ -187,9 +185,6 @@ class LafaForCausalLM(FlowModelWrapper):
         elif gen_mode == 'speculative':
             method = self.generate_self_speculative
             params.update(grid_mode=grid_mode)
-        elif gen_mode in ('confidence', 'greedy'):
-            method = self.generate_confidence
-            params.update(order=gen_mode, num_steps=num_steps, grid_mode=grid_mode)
         else:
             method = self.generate_flow
             params.update(num_steps=num_steps, grid_mode=grid_mode, cfg_scale=cfg_scale)

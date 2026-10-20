@@ -106,16 +106,6 @@ def test_batched_flow_generation_dtype(dtype):
         assert len(output) == 8
 
 
-@pytest.mark.parametrize('mode', ['confidence', 'greedy'])
-def test_student_cannot_silently_use_teacher_decoder(monkeypatch, mode):
-    from types import SimpleNamespace
-    import src.evaluation.harness as harness
-    monkeypatch.setattr(harness, '_build_model',
-        lambda *args, **kwargs: (SimpleNamespace(_two_time=True), '', ''))
-    with pytest.raises(ValueError, match='Two-time student checkpoints'):
-        AR2FlowEvalHarness(pretrained='/nonexistent', gen_mode=mode)
-
-
 def test_batched_ar_reports_one_forward_per_generated_token():
     model = tiny_flow()
     prompt = torch.tensor([[3,4,5],[6,7,8]])

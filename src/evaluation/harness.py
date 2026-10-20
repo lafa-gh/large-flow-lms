@@ -9,7 +9,7 @@ training settings that cannot be inferred from model weights.
 Example:
     python -m src.evaluation.harness --model lafa --tasks gsm8k_cot \
         --num_fewshot 0 --apply_chat_template \
-        --model_args "pretrained=output/checkpoint-1000,base_model=Qwen/Qwen2.5-0.5B-Instruct,gen_mode=confidence,num_steps=1,threshold=0.95,use_ema=true"
+        --model_args "pretrained=output/checkpoint-1000,base_model=Qwen/Qwen2.5-0.5B-Instruct,gen_mode=flow,num_steps=1,threshold=0.95,use_ema=true"
 """
 
 import glob
@@ -409,8 +409,6 @@ class AR2FlowEvalHarness(LM):
         t_max=0.2,
         threshold=0.0,
         ode_argmax="false",
-        fixed_block_noise="false",
-        cond_t=1.0,
         sde_gamma=0.0,
         sde_alpha=0.0,
         sde_vp="false",
@@ -422,7 +420,6 @@ class AR2FlowEvalHarness(LM):
         spec_self_cond="false",  # gen_mode=speculative: self-condition the draft (2 fwd/round)
         gen_batch_size=1,
         show_samples="true",
-        commit_per_step=1,
         force_block_size=0,
         time_warp_per_position=None,  # None=inherit config; false=pooled grid
         noise_scale_override=None,  # None=inherit fcfg noise; set=tune noise HP
@@ -432,7 +429,7 @@ class AR2FlowEvalHarness(LM):
         **kwargs,
     ):
         super().__init__()
-        valid_modes = ("ar", "flow", "confidence", "greedy", "speculative")
+        valid_modes = ("ar", "flow", "speculative")
         if gen_mode not in valid_modes:
             raise ValueError(
                 f"Unsupported gen_mode={gen_mode!r}; choose one of {valid_modes}. "
@@ -483,11 +480,6 @@ class AR2FlowEvalHarness(LM):
                 None if noise_scale_override is None else float(noise_scale_override)
             ),
         )
-        if model._two_time and gen_mode not in ("ar", "speculative", "flow"):
-            raise ValueError(
-                "Two-time student checkpoints currently support only "
-                "gen_mode='ar', 'flow' or 'speculative'"
-            )
         self.model = model
         # Prefer the checkpoint tokenizer, then the base model tokenizer.
         tok_src = (
@@ -522,8 +514,6 @@ class AR2FlowEvalHarness(LM):
         self.grid_mode = grid_mode
         self.t_max = t_max
         self.ode_argmax = _str2bool(ode_argmax)
-        self.fixed_block_noise = _str2bool(fixed_block_noise)
-        self.cond_t = float(cond_t)
         self.sde_gamma = float(sde_gamma)
         self.sde_alpha = float(sde_alpha)
         self.sde_vp = _str2bool(sde_vp)
@@ -534,7 +524,6 @@ class AR2FlowEvalHarness(LM):
         self.use_ema = _str2bool(use_ema)
         self.gen_mode = gen_mode
         self.show_samples = _str2bool(show_samples)
-        self.commit_per_step = int(commit_per_step)
         self._gen_stats = []
 
         if getattr(self.model.config, 'weight_variant', None) == 'ema':
@@ -705,9 +694,7 @@ class AR2FlowEvalHarness(LM):
             self.gen_batch_size > 1
             and self.gen_mode != "speculative"
             and not self.model._two_time
-            and (
-                self.gen_mode in ("ar", "confidence", "greedy") or self.threshold <= 0.0
-            )
+            and (self.gen_mode == "ar" or self.threshold <= 0.0)
             and (
                 not requests
                 or all(
@@ -752,27 +739,6 @@ class AR2FlowEvalHarness(LM):
                             am.to(self._device),
                             max_new_tokens=max_gen,
                             temperature=temperature,
-                        )
-                    elif self.gen_mode in ("confidence", "greedy"):
-                        out_list, stats = self.model.generate_confidence_batched(
-                            ids.to(self._device),
-                            am.to(self._device),
-                            max_new_tokens=max_gen,
-                            order=self.gen_mode,
-                            num_steps=self.num_steps,
-                            grid_mode=self.grid_mode,
-                            t_max=self.t_max,
-                            temperature=temperature,
-                            commit_per_step=self.commit_per_step,
-                            ode_argmax=self.ode_argmax,
-                            fixed_block_noise=self.fixed_block_noise,
-                            threshold=self.threshold,
-                            cond_t=self.cond_t,
-                            sde_alpha=self.sde_alpha,
-                            sde_gamma=self.sde_gamma,
-                            sde_vp=self.sde_vp,
-                            sde_noiseless=self.sde_noiseless,
-                            euler_alpha=self.euler_alpha,
                         )
                     else:
                         out_list, stats = self.model.generate_batched(
@@ -852,26 +818,6 @@ class AR2FlowEvalHarness(LM):
                             prompt_ids,
                             max_new_tokens=max_gen,
                             temperature=temperature,
-                        )
-                    elif self.gen_mode in ("confidence", "greedy"):
-                        gen_ids, stats = self.model.generate_confidence(
-                            prompt_ids,
-                            max_new_tokens=max_gen,
-                            order=self.gen_mode,
-                            num_steps=self.num_steps,
-                            grid_mode=self.grid_mode,
-                            t_max=self.t_max,
-                            temperature=temperature,
-                            commit_per_step=self.commit_per_step,
-                            ode_argmax=self.ode_argmax,
-                            fixed_block_noise=self.fixed_block_noise,
-                            threshold=self.threshold,
-                            cond_t=self.cond_t,
-                            sde_alpha=self.sde_alpha,
-                            sde_gamma=self.sde_gamma,
-                            sde_vp=self.sde_vp,
-                            sde_noiseless=self.sde_noiseless,
-                            euler_alpha=self.euler_alpha,
                         )
                     elif self.gen_mode == "speculative":
                         gen_ids, stats = self.model.generate_self_speculative(

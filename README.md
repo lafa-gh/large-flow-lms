@@ -2,10 +2,6 @@
 
 # Large Flow Language Models
 
-### One model. Three ways to decode.
-
-`next-token` · `parallel flow` · `self-speculative`
-
 [![Paper](https://img.shields.io/badge/Paper-Citation-B31B1B?logo=arxiv&logoColor=white)](#citation)
 [![Models](https://img.shields.io/badge/Hugging_Face-Models-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/lafa-hf/models)
 [![Inference](https://img.shields.io/badge/Docs-Inference-2563EB)](docs/inference.md)
@@ -13,14 +9,14 @@
 
 **Arnav Chavan**<sup>1,2,&#42;</sup> ·
 **Chanhyuk Lee**<sup>3,&#42;</sup> ·
-**Udbhav Bamba**<sup>1,&#42;</sup> ·
+**Udbhav Bamba**<sup>2,&#42;</sup> ·
 **Jaehoon Yoo**<sup>3</sup> ·
 **Seunghoon Hong**<sup>3</sup> ·
 **Aditi Raghunathan**<sup>4,†</sup> ·
 **Jinwoo Kim**<sup>3,†</sup>
 
 <sub>
-<sup>1</sup> Amazon · <sup>2</sup> UC Berkeley · <sup>3</sup> KAIST ·
+<sup>1</sup> UC Berkeley · <sup>2</sup> Amazon · <sup>3</sup> KAIST ·
 <sup>4</sup> Carnegie Mellon University<br>
 <sup>&#42;</sup> Equal contribution · <sup>†</sup> Equal advising
 </sub>
@@ -29,30 +25,9 @@
 
 ---
 
-**Lafa** converts pretrained autoregressive models into block flow language
-models. The same weights support standard next-token prediction, parallel
-block generation, and self-speculative decoding.
-
-<table>
-  <tr>
-    <td align="center" width="33%">
-      <strong>2.54×</strong><br>
-      AR throughput at matched or better quality
-    </td>
-    <td align="center" width="33%">
-      <strong>3 modes</strong><br>
-      NTP · flow · self-spec
-    </td>
-    <td align="center" width="33%">
-      <strong>0.5B–8B</strong><br>
-      released checkpoints
-    </td>
-  </tr>
-</table>
-
 <p align="center">
   <img src="docs/assets/overview.png"
-       alt="Lafa next-token, flow, and self-speculative decoding overview"
+       alt="Lafa overview with AR predictions, flow and flow map decoding, and self-speculative decoding"
        width="100%">
 </p>
 
@@ -125,11 +100,12 @@ print(tokenizer.decode(
 
 Change one argument to switch decoding:
 
-| Mode | Argument |
+| Decoding | Arguments |
 |---|---|
-| Parallel flow | `gen_mode="flow"` |
-| Next-token prediction | `gen_mode="ar"` |
+| Flow | `gen_mode="flow"`, `num_steps=K` |
+| Autoregressive | `gen_mode="ar"` |
 | Self-speculative | `gen_mode="speculative"` |
+| Confidence thresholding | `gen_mode="flow"`, `num_steps=1`, `threshold=0.9` |
 
 ## Guides
 

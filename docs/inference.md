@@ -2,33 +2,49 @@
 
 [Back to README](../README.md)
 
-Run commands from the repository root.
+Lafa models load with `AutoModelForCausalLM` and `trust_remote_code=True`; see
+the [quick start](../README.md#quick-start). The model code ships with each
+checkpoint, so inference needs neither this repository nor the original Qwen
+weights.
 
-For private repositories, authenticate with `hf auth login` using an account
-with access. The model code is packaged with the weights; inference does not
-require installing this source repository or downloading the original Qwen weights.
+## Decoding schemes
 
-See the [quick start](../README.md#quick-start) for installation and a complete generation example.
+All schemes reuse the prefix KV cache and decode greedily.
 
-## Decoding modes and batching
+| Scheme | Arguments | What it does |
+|---|---|---|
+| Autoregressive | `gen_mode="ar"` | One token per forward from the retained AR predictor. |
+| Flow | `gen_mode="flow"`, `num_steps=K` | Generates each block with `K` Euler steps of the learned flow. |
+| Flow map | `gen_mode="flow"`, `num_steps=K` on a distilled student | Replaces each Euler step with a learned jump; `K=1` generates a block in one step. |
+| Self-speculative | `gen_mode="speculative"` | Drafts a block in one step and verifies it with the AR predictor. Output matches greedy AR decoding. |
+| Confidence thresholding | `gen_mode="flow"`, `num_steps=1`, `threshold=λ` | Accepts the longest left-to-right prefix of a one-step draft whose confidence is at least `λ` (at least one token). |
 
-Choose `gen_mode="ar"`, `"flow"`, `"confidence"`, `"greedy"`, or `"speculative"`.
-The default output is a token tensor; `return_dict_in_generate=True` returns
-`sequences` and per-sample `stats`. The HF interface implements greedy generation.
-Self-speculative decoding supports batched prompts with independent acceptance,
-EOS handling, and per-sample forward counts. Other HF generation modes process
-batch rows sequentially. Returned prefixes preserve input padding. Beam search,
-sampling controls, and automatic multi-device inference dispatch are not supported.
-The evaluation harness also supports batched teacher decoding; set
-`gen_mode=speculative,gen_batch_size=8` for self-speculation. TPF is total generated
-tokens divided by the sum of per-sample decoding forwards, excluding prefill;
-it does not multiply by batch size. BF16 rounding can change greedy token choices and
-acceptance when batch shapes change.
+## Arguments
+
+| Argument | Default | Meaning |
+|---|---|---|
+| `num_steps` | 4 | Euler steps per block (`flow`) |
+| `cfg_scale` | 1.0 | Prefix guidance scale `g` (`flow`). The paper uses 8. Students use 1. |
+| `noise_scale_override` | 0.1 | Inference noise scale `σ` |
+| `threshold` | 0 (off) | Confidence threshold `λ` |
+| `max_new_tokens` | from the generation config | Generation budget |
+| `seed` | 42 | Noise seed |
+
+Pass `return_dict_in_generate=True` to get `sequences` together with
+per-sample `stats`, including forward counts.
+
+**Tokens per forward (TPF)** is generated tokens divided by decoding forwards,
+excluding prompt prefill.
 
 ## Checkpoint variants
 
-The root model has EMA applied to its weights. Use `subfolder="raw"` to select
-original weights when using an exported raw variant. Model settings, including
-noise calibration and the legacy rotary-buffer precision, are stored in the
-integrated `config.json`. The learned schedule is loaded from `time_warper.pt`.
-Use a fixed `revision` for both model and tokenizer to pin an experiment.
+| Option | Weights |
+|---|---|
+| Default | EMA weights |
+| `subfolder="raw"` | Non-EMA weights, where provided |
+| `revision="<commit>"` | A pinned snapshot. Use the same value for the tokenizer. |
+
+## Limitations
+
+- Greedy decoding only. Sampling and beam search are not supported.
+- Batched prompts are decoded one row at a time.

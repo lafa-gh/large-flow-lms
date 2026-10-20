@@ -33,9 +33,9 @@ def test_autoclass_roundtrip_without_base_weights(tmp_path):
     for k,v in model.state_dict().items():
         torch.testing.assert_close(v,restored.state_dict()[k])
     prompt = torch.tensor([[2,3,4]])
-    for mode in ['ar','flow','confidence','speculative']:
-        expected = model.generate(prompt,gen_mode=mode,max_new_tokens=5)
-        actual = restored.generate(prompt,gen_mode=mode,max_new_tokens=5)
+    for mode,kw in [('ar',{}),('flow',{}),('flow',{'num_steps':1,'threshold':0.9}),('speculative',{})]:
+        expected = model.generate(prompt,gen_mode=mode,max_new_tokens=5,**kw)
+        actual = restored.generate(prompt,gen_mode=mode,max_new_tokens=5,**kw)
         assert torch.equal(actual,expected)
     restored.save_pretrained(tmp_path/'again')
     again = AutoModelForCausalLM.from_pretrained(tmp_path/'again',trust_remote_code=True)

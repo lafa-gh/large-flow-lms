@@ -2,69 +2,69 @@
 
 [Back to README](../README.md)
 
-Run commands from the repository root.
-
-Install the evaluation dependencies:
+Benchmarks run through [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness)
+with the `lafa` model in `src.evaluation.harness`. Run commands from the
+repository root:
 
 ```bash
 pip install -r requirements.txt -c constraints-tested.txt
 ```
 
-## Evaluate an HF model
+## Run a benchmark
 
 ```bash
 python -m src.evaluation.harness \
   --model lafa --tasks ifeval --num_fewshot 0 --apply_chat_template \
-  --output_path output/ifeval \
   --gen_kwargs max_gen_toks=1024,do_sample=false,temperature=0.0 \
+  --output_path output/ifeval \
   --model_args "pretrained=lafa-hf/lafa-0.5B,gen_mode=flow,num_steps=4,cfg_scale=8,noise_scale_override=0.1,max_new_tokens=1024,max_length=4096"
 ```
 
-HF root weights already contain EMA, so `use_ema=true` is unnecessary. For
-reproduction, specify task-specific prompt formatting, few-shot count, token
-limit, noise, CFG, and step count explicitly. This command is an execution
-example; matching a paper score requires that row's evaluation settings.
+`pretrained` takes an HF repo ID or a local checkpoint. For a local training
+checkpoint, also pass `base_model=<backbone>` and `use_ema=true`; HF models
+already hold EMA weights.
 
-## Evaluate a local checkpoint
+## Decoding settings
 
-Run evaluation separately after training.
+Set the scheme in `--model_args`:
 
-The `lafa` lm-evaluation-harness model loads a checkpoint and its saved
-config. For a quick generation task:
+| Scheme | `--model_args` |
+|---|---|
+| Autoregressive | `gen_mode=ar` |
+| Flow, `K` steps | `gen_mode=flow,num_steps=K,cfg_scale=8,noise_scale_override=0.1` |
+| Flow map (student), `K` steps | `gen_mode=flow,num_steps=K,cfg_scale=1,noise_scale_override=0.5` |
+| Self-speculative | `gen_mode=speculative` |
+| Confidence thresholding | `gen_mode=flow,num_steps=1,threshold=λ` |
+
+The harness reports tokens per forward (TPF) alongside accuracy, excluding
+prompt prefill.
+
+## Benchmarks
+
+| Benchmark | `--tasks` | Few-shot | Chat template |
+|---|---|---|---|
+| IFEval | `ifeval` | 0 | yes |
+| BBH | `bbh` | 3 | no |
+| MMLU-Pro | `mmlu_pro` | 0 | no |
+| GPQA | `gpqa_main_cot_zeroshot` | 0 | yes |
+| GSM8K | `gsm8k_cot` | 0 | yes |
+| HumanEval | `humaneval_instruct` (add `--confirm_run_unsafe_code`) | 0 | yes |
+
+Add `--apply_chat_template` where the table says yes. To reproduce a paper
+number, also match that row's generation budget and decoding settings.
+
+## Tests
 
 ```bash
-python -m src.evaluation.harness \
-  --model lafa --tasks gsm8k_cot --num_fewshot 0 \
-  --apply_chat_template --output_path output/eval-gsm8k \
-  --model_args "pretrained=output/lafa-0.5b/checkpoint-2000,base_model=Qwen/Qwen2.5-0.5B-Instruct,gen_mode=confidence,num_steps=1,threshold=0.95,noise_scale_override=0.1,use_ema=true"
-```
-
-Use `gen_mode=ar` for next token decoding, `gen_mode=flow` for whole block
-Euler decoding, `gen_mode=confidence` for threshold decoding, and
-`gen_mode=speculative` for self speculative decoding. `num_steps`,
-`grid_mode`, `t_max`, `threshold`, `cfg_scale`, and
-`noise_scale_override` control inference. Exact benchmark settings differ
-by task; see the paper tables when reproducing a result.
-
-## Validation
-
-```bash
-pip install -r requirements.txt -c constraints-tested.txt
 pip install pytest
 python -m pytest tests -q
 ```
 
-Tests cover checkpoint loading, masked PSD loss and gradients, frozen teacher
-weights, student save/load, token limits, and decoding regressions. Checkpoint
-smoke tests cover short 0.5B training and distributed resume; these are not full
-benchmark reproductions.
+To check that a code change leaves generations unchanged:
 
 ```bash
-python scripts/check_checkpoint.py --checkpoint /path/to/teacher --output output/before.json
-python scripts/check_checkpoint.py --checkpoint /path/to/teacher --output output/after.json \
+python scripts/check_checkpoint.py --checkpoint /path/to/model --output output/before.json
+# ...apply the change...
+python scripts/check_checkpoint.py --checkpoint /path/to/model --output output/after.json \
   --reference output/before.json
 ```
-
-The comparison uses checkpoint EMA, the learned time grid, noise multiplier 0.1,
-seed 42, and 32 generated tokens. It compares two prompts in AR, flow (1 and 4
-steps, CFG 8), and self-speculative modes.

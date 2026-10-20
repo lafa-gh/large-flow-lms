@@ -2,55 +2,61 @@
 
 [Back to README](../README.md)
 
-Run commands from the repository root.
+Distillation turns a trained Lafa model (the teacher) into a flow map student
+that generates a block in one or a few steps. It follows semigroup-based flow
+map distillation:
+
+- **Diagonal (`s = t`):** the student matches the frozen teacher denoiser.
+- **Off-diagonal (`s ≠ t`):** the student matches a stop-gradient target formed
+  by composing two shorter student jumps.
+- **Prefix:** the student also matches the teacher's AR predictions, so prefix
+  caching and self-speculative decoding still work.
+
+All terms use KL losses. The student starts from the teacher's weights, plus an
+identity-initialized adaLN for the destination time.
+
+## Run
 
 ```bash
 pip install -r requirements.txt -c constraints-tested.txt
-# Eight GPUs: 4 examples/GPU × 4 accumulation steps × 8 GPUs = global batch 128.
 torchrun --standalone --nproc_per_node=8 train_distill.py config/distill_0.5b.json
 ```
 
-`distill_teacher_path` accepts an HF model ID or a local exported Lafa directory.
-`revision` and `subfolder` select the teacher snapshot. The default teacher is
-`lafa-hf/lafa-0.5B`, whose root weights already contain EMA. Student and teacher
-start from those same weights; the student's target-time embedding is initialized
-with a zero output. The teacher, vocabulary embeddings, vocabulary head, and
-learned time schedule stay frozen.
+The preset distills `lafa-hf/lafa-0.5B` with a global batch of 128
+(4 per GPU × 4 accumulation steps × 8 GPUs).
 
-The preset follows conditional PSD: equal diagonal/off-diagonal batch rows,
-independent intervals per block, gap sampling with a midpoint split, noise 0.5,
-and reduced-noise source-time-zero inputs on half the off-diagonal rows.
-Diagonal targets come from the frozen teacher; off-diagonal targets compose two
-stopped student transitions. The optimized cross entropy has the same gradient
-as target-to-student KL. Clean-prefix AR KL preserves next-token predictions.
-Component KL values are logged separately.
-
-Hidden matrices use native Muon at `muon_lr=3e-5`; other parameters use AdamW
-at `learning_rate=1e-5`. Training uses DDP with one frozen teacher per GPU.
-Change gradient accumulation to preserve the desired global batch size.
-DeepSpeed is supported by teacher training; this PSD entrypoint uses DDP.
-
-For a local dataset or another teacher:
+To use another teacher, your own data, or fewer GPUs:
 
 ```bash
 torchrun --standalone --nproc_per_node=2 train_distill.py config/distill_0.5b.json \
-  --distill_teacher_path lafa-hf/lafa-0.5B --dataset_name /path/to/messages.jsonl \
-  --gradient_accumulation_steps 16 --output_dir output/student
+  --distill_teacher_path lafa-hf/lafa-0.5B \
+  --dataset_name /path/to/messages.jsonl \
+  --gradient_accumulation_steps 16 \
+  --output_dir output/student
 ```
 
-Rerunning the same command resumes the latest `checkpoint-*` in `output_dir`.
-An explicit `--resume_from_checkpoint /path/to/checkpoint-N` also works.
-Checkpoints retain optimizer, scheduler, RNG, EMA, learned schedule, and step
-state. Keep the same distillation settings and process count when resuming.
-Use a new output directory for a new training run.
+| Key | Meaning |
+|---|---|
+| `distill_teacher_path` | Teacher: HF repo ID or local Lafa directory |
+| `revision`, `subfolder` | Teacher snapshot and weight variant |
+| `dataset_name` | Same format as [training data](training.md#training-data) |
+| `output_dir` | Where checkpoints are written |
 
-Student checkpoints load with the `AutoModelForCausalLM` example in the
-[quick start](../README.md#quick-start);
-set `repo` to the saved directory. They need no teacher for inference.
-For a student, `gen_mode="flow"` evaluates learned two-time transitions; use
-`cfg_scale=1.0`, `grid_mode="warp"`, and an explicit `num_steps` and noise scale.
-`ar` and `speculative` also work. Confidence/greedy teacher decoding is rejected
-for students. The final output directory holds running weights; checkpoint
-`ema.pt` contains the separately maintained weight EMA.
+To resume, rerun the same command. Training continues from the latest
+`checkpoint-*` in `output_dir`.
 
-See [training data](training.md#training-data) for the dataset format.
+## Use the student
+
+Load the student like any Lafa model ([quick start](../README.md#quick-start)),
+with `repo` set to the output directory. No teacher is needed.
+
+| Decoding | Arguments |
+|---|---|
+| Flow map, `K` steps | `gen_mode="flow"`, `num_steps=K`, `cfg_scale=1.0`, `noise_scale_override=0.5` |
+| One-step flow map | same, with `num_steps=1` |
+| Confidence thresholding | same, with `num_steps=1`, `threshold=λ` |
+| Self-speculative | `gen_mode="speculative"` |
+| Autoregressive | `gen_mode="ar"` |
+
+The output directory holds the raw student weights; each checkpoint's `ema.pt`
+holds the weight EMA.
