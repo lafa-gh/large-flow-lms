@@ -2,7 +2,7 @@
 
 # Large Flow Language Models
 
-[![Paper](https://img.shields.io/badge/Paper-Citation-B31B1B?logo=arxiv&logoColor=white)](#citation)
+[![arXiv](https://img.shields.io/badge/arXiv-coming_soon-B31B1B?logo=arxiv&logoColor=white)](#citation)
 [![Models](https://img.shields.io/badge/Hugging_Face-Models-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/lafa-hf/models)
 [![Inference](https://img.shields.io/badge/Docs-Inference-2563EB)](docs/inference.md)
 [![License](https://img.shields.io/badge/License-Apache_2.0-16A34A)](LICENSE)
@@ -25,6 +25,12 @@
 
 ---
 
+**Lafa** is a continuous flow language model that generates text block by
+block through a flow over token embeddings, which can be distilled into a flow
+map for one- or few-step generation. Lafa can also verify its own flow drafts
+autoregressively in self-speculative decoding, reaching 2.54× the throughput
+of an autoregressive model at comparable quality.
+
 <p align="center">
   <img src="docs/assets/overview.png"
        alt="Lafa overview with AR predictions, flow and flow map decoding, and self-speculative decoding"
@@ -39,12 +45,15 @@
        width="560">
 </p>
 
-<p align="center">
-  <strong>Quality + speed:</strong>
-  Lafa 7B reaches 2.54× AR throughput at matched or better quality.
-</p>
+Accuracy vs. throughput of Lafa 7B against autoregressive, multi-token
+prediction, and diffusion baselines, averaged over IFEval, GSM8K, and HumanEval.
+Lafa 7B reaches 2.54× the throughput of an autoregressive model at matched or
+better quality.
 
 ## Models
+
+All released models use block size 4. Each checkpoint supports flow,
+autoregressive, and self-speculative decoding.
 
 | Backbone | Size | Block | Model |
 |---|---:|---:|---|
@@ -53,6 +62,9 @@
 | Qwen3 Base | 8B | 4 | [🤗 `lafa-hf/lafa-8B`](https://huggingface.co/lafa-hf/lafa-8B) |
 
 ## Quick start
+
+Install the inference dependencies, then load a model from Hugging Face. The
+model code ships with the checkpoint.
 
 ```bash
 git clone https://github.com/lafa-gh/large-flow-lms.git
@@ -98,7 +110,7 @@ print(tokenizer.decode(
 ))
 ```
 
-Change one argument to switch decoding:
+Change the arguments to switch decoding:
 
 | Decoding | Arguments |
 |---|---|
@@ -109,6 +121,8 @@ Change one argument to switch decoding:
 
 ## Guides
 
+Detailed instructions for each part of the pipeline:
+
 | | |
 |---|---|
 | [**Inference**](docs/inference.md) | Modes, batching, and checkpoint options |
@@ -118,12 +132,14 @@ Change one argument to switch decoding:
 
 ## Citation
 
+The arXiv preprint is coming soon. If you use Lafa, please cite:
+
 ```bibtex
-@misc{chavan2026largeflow,
-  title  = {Large Flow Language Models},
-  author = {Arnav Chavan and Chanhyuk Lee and Udbhav Bamba and Jaehoon Yoo
-            and Seunghoon Hong and Aditi Raghunathan and Jinwoo Kim},
-  year   = {2026},
-  url    = {https://github.com/lafa-gh/large-flow-lms}
+@article{chavan2026largeflow,
+  title   = {Large Flow Language Models},
+  author  = {Chavan, Arnav and Lee, Chanhyuk and Bamba, Udbhav and Yoo, Jaehoon
+             and Hong, Seunghoon and Raghunathan, Aditi and Kim, Jinwoo},
+  journal = {arXiv preprint},
+  year    = {2026}
 }
 ```
