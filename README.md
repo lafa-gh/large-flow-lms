@@ -117,7 +117,7 @@ Change the arguments to switch decoding:
 | Flow | `gen_mode="flow"`, `num_steps=K` |
 | Autoregressive | `gen_mode="ar"` |
 | Self-speculative | `gen_mode="speculative"` |
-| Confidence thresholding | `gen_mode="flow"`, `num_steps=1`, `threshold=0.9` |
+| Confidence thresholding | `gen_mode="flow"`, `num_steps=1`, `threshold=0.9`, `self_cond=False` |
 
 ## Guides
 

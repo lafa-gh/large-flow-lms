@@ -17,7 +17,7 @@ All schemes reuse the prefix KV cache and decode greedily.
 | Flow | `gen_mode="flow"`, `num_steps=K` | Generates each block with `K` Euler steps of the learned flow. |
 | Flow map | `gen_mode="flow"`, `num_steps=K` on a distilled student | Replaces each Euler step with a learned jump; `K=1` generates a block in one step. |
 | Self-speculative | `gen_mode="speculative"` | Drafts a block in one step and verifies it with the AR predictor. Output matches greedy AR decoding. |
-| Confidence thresholding | `gen_mode="flow"`, `num_steps=1`, `threshold=λ` | Accepts the longest left-to-right prefix of a one-step draft whose confidence is at least `λ` (at least one token). |
+| Confidence thresholding | `gen_mode="flow"`, `num_steps=1`, `threshold=λ`, `self_cond=False` | Accepts the longest left-to-right prefix of a one-step draft whose confidence is at least `λ` (at least one token). |
 
 ## Arguments
 
@@ -27,6 +27,7 @@ All schemes reuse the prefix KV cache and decode greedily.
 | `cfg_scale` | 1.0 | Prefix guidance scale `g` (`flow`). The paper uses 8. Students use 1. |
 | `noise_scale_override` | 0.1 | Inference noise scale `σ` |
 | `threshold` | 0 (off) | Confidence threshold `λ` |
+| `self_cond` | checkpoint setting | Self-conditioning in flow decoding. It adds one forward per block; set `False` for one-step drafts. |
 | `max_new_tokens` | from the generation config | Generation budget |
 | `seed` | 42 | Noise seed |
 

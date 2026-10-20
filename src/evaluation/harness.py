@@ -418,6 +418,7 @@ class AR2FlowEvalHarness(LM):
         use_ema="false",
         gen_mode="flow",
         spec_self_cond="false",  # gen_mode=speculative: self-condition the draft (2 fwd/round)
+        self_cond=None,  # gen_mode=flow: None keeps the checkpoint setting; false drops the extra forward
         gen_batch_size=1,
         show_samples="true",
         force_block_size=0,
@@ -480,6 +481,8 @@ class AR2FlowEvalHarness(LM):
                 None if noise_scale_override is None else float(noise_scale_override)
             ),
         )
+        if self_cond is not None:
+            model.enable_self_cond = model.enable_self_cond and _str2bool(self_cond)
         self.model = model
         # Prefer the checkpoint tokenizer, then the base model tokenizer.
         tok_src = (

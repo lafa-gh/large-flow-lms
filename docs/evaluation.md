@@ -34,7 +34,7 @@ Set the scheme in `--model_args`:
 | Flow, `K` steps | `gen_mode=flow,num_steps=K,cfg_scale=8,noise_scale_override=0.1` |
 | Flow map (student), `K` steps | `gen_mode=flow,num_steps=K,cfg_scale=1,noise_scale_override=0.5` |
 | Self-speculative | `gen_mode=speculative` |
-| Confidence thresholding | `gen_mode=flow,num_steps=1,threshold=λ` |
+| Confidence thresholding | `gen_mode=flow,num_steps=1,threshold=λ,self_cond=false` |
 
 The harness reports tokens per forward (TPF) alongside accuracy, excluding
 prompt prefill.

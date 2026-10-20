@@ -156,7 +156,7 @@ class LafaForCausalLM(FlowModelWrapper):
                  attention_mask=None, gen_mode='flow', max_new_tokens=None,
                  num_steps=4, grid_mode='warp', cfg_scale=1.0,
                  noise_scale_override=0.1, seed=42, return_dict_in_generate=False,
-                 do_sample=None, temperature=None, **kwargs):
+                 do_sample=None, temperature=None, self_cond=None, **kwargs):
         ids = input_ids if input_ids is not None else inputs
         if ids is None or ids.ndim != 2 or ids.shape[1] == 0:
             raise ValueError('Expected nonempty input_ids with shape [batch, sequence]')
@@ -196,11 +196,15 @@ class LafaForCausalLM(FlowModelWrapper):
             raise ValueError(f'Unsupported generation arguments: {sorted(unknown)}')
         params.update(kwargs)
         saved_eos, saved_noise = self.backbone.config.eos_token_id, self.noise_scale_mult
+        saved_sc = self.enable_self_cond
         rows, stats = [], []
         try:
             self.backbone.config.eos_token_id = eos
             if noise_scale_override is not None:
                 self.noise_scale_mult = float(noise_scale_override)
+            # None keeps the checkpoint's flow self-conditioning; False drops its extra forward per block.
+            if self_cond is not None:
+                self.enable_self_cond = bool(self_cond) and saved_sc
             for row, mask in zip(ids, attention_mask):
                 prompt = row[mask.bool()].unsqueeze(0).to(self.embed_tokens.weight.device)
                 if limit:
@@ -213,6 +217,7 @@ class LafaForCausalLM(FlowModelWrapper):
                 stats.append(record)
         finally:
             self.backbone.config.eos_token_id, self.noise_scale_mult = saved_eos, saved_noise
+            self.enable_self_cond = saved_sc
         size = max(row.numel() for row in rows)
         sequences = torch.full((len(rows), size), pad, dtype=ids.dtype, device=rows[0].device)
         for i, row in enumerate(rows):
