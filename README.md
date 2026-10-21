@@ -2,7 +2,7 @@
 
 # Large Flow Language Models
 
-[![arXiv](https://img.shields.io/badge/arXiv-coming_soon-B31B1B?logo=arxiv&logoColor=white)](#citation)
+[![arXiv](https://img.shields.io/badge/arXiv-2610.28559-B31B1B?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2610.28559)
 [![Models](https://img.shields.io/badge/Hugging_Face-Models-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/lafa-hf/models)
 [![Inference](https://img.shields.io/badge/Docs-Inference-2563EB)](docs/inference.md)
 [![License](https://img.shields.io/badge/License-Apache_2.0-16A34A)](LICENSE)
@@ -132,14 +132,14 @@ Detailed instructions for each part of the pipeline:
 
 ## Citation
 
-The arXiv preprint is coming soon. If you use Lafa, please cite:
+If you use Lafa, please cite:
 
 ```bibtex
 @article{chavan2026largeflow,
   title   = {Large Flow Language Models},
   author  = {Chavan, Arnav and Lee, Chanhyuk and Bamba, Udbhav and Yoo, Jaehoon
              and Hong, Seunghoon and Raghunathan, Aditi and Kim, Jinwoo},
-  journal = {arXiv preprint},
+  journal = {arXiv preprint arXiv:2610.28559},
   year    = {2026}
 }
 ```
